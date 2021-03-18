@@ -16,7 +16,7 @@ sealed trait List[+A]{
 
   def map[B](f: A => B): List[B]
 
-  //def ::(elem: A): List[A]
+  def ::[B](elem: B): List[Any]
 }
 
 case class FPList[A](head: A, tail: List[A]) extends List[A] {
@@ -39,9 +39,9 @@ case class FPList[A](head: A, tail: List[A]) extends List[A] {
     FPList[B](f(head), tail.map(f))
   }
 
-//  override def ::(elem: A): List[A] = {
-//    FPList[A](elem, this)
-//  }
+  override def ::[B](elem: B): List[Any] = {
+    FPList(elem, this)
+  }
 }
 
 case object FPNil extends List[Nothing] {
@@ -71,9 +71,9 @@ case object FPNil extends List[Nothing] {
     this
   }
 
-//  override def ::(elem: _): List[_] = {
-//    this
-//  }
+  override def ::[A](elem: A): List[A] = {
+    FPList[A](elem, this)
+  }
 }
 
 object IntList {
