@@ -9,7 +9,7 @@
 *.toc
 *.vrb
 *.log
-_minted-slides
+*.pdf
 
 # JVM & Scala
 target/

@@ -1,97 +1,102 @@
 package org.spbsu.mkn.scala
 
+import org.graalvm.compiler.core.common.util.IntList
 import org.spbsu.mkn.scala.IntList._
 
 import scala.annotation.tailrec
 
-sealed trait IntList {
-  def head: Int
+sealed trait List[+A]{
+  def head: A
 
-  def tail: IntList
+  def tail: List[A]
 
-  def drop(n: Int): IntList
+  def drop(n: Int): List[A]
 
-  def take(n: Int): IntList
+  def take(n: Int): List[A]
 
-  def map(f: Int => Int): IntList
+  def map[B](f: A => B): List[B]
 
-  def ::(elem: Int): IntList
+  def ::[B](elem: B): List[Any]
 }
 
-case class FPList(head: Int, tail: IntList) extends IntList {
-  override def drop(n: Int): IntList = {
+case class FPList[A](head: A, tail: List[A]) extends List[A] {
+
+  override def drop(n: Int): List[A] = {
     if (n <= 0) {
       return this
     }
     tail.drop(n - 1)
   }
 
-  override def take(n: Int): IntList = {
+  override def take(n: Int): List[A] = {
     if (n <= 0) {
-      return IntNil
+      return FPNil
     }
-    FPList(head, tail.take(n-1))
+    FPList[A](head, tail.take(n-1))
   }
 
-  override def map(f: Int => Int): IntList = {
-    FPList(f(head), tail.map(f))
+  override def map[B](f: A => B): List[B] = {
+    FPList[B](f(head), tail.map(f))
   }
 
-  override def ::(elem: Int): IntList = {
+  override def ::[B](elem: B): List[Any] = {
     FPList(elem, this)
   }
 }
 
-object IntNil extends IntList {
-  override def head: Int = {
+case object FPNil extends List[Nothing] {
+  override def head: Nothing = {
     throw new UnsupportedOperationException("trying to take non existing element")
   }
 
-  override def tail: IntList = null
+  override def tail: List[Nothing] = {
+    throw new UnsupportedOperationException("trying to take non existing element")
+  }
 
-  override def drop(n: Int): IntList = {
+  override def drop(n: Int): List[Nothing] = {
     if (n != 0) {
       throw new UnsupportedOperationException("trying to drop more elements than exists")
     }
     this
   }
 
-  override def take(n: Int): IntList = {
+  override def take(n: Int): List[Nothing] = {
     if (n > 0) {
       throw new UnsupportedOperationException("trying to take more elements than exists")
     }
     this
   }
 
-  override def map(f: Int => Int): IntList = {
+  override def map[B](f: Nothing => B): List[B] = {
     this
   }
 
-  override def ::(elem: Int): IntList = {
-    this
+  override def ::[A](elem: A): List[A] = {
+    FPList[A](elem, this)
   }
 }
 
 object IntList {
   def undef: Nothing = throw new UnsupportedOperationException("operation is undefined")
 
-  def fromSeq(seq: Seq[Int]): IntList = {
+  def fromSeq[A](seq: Seq[A]): List[A] = {
     if (seq.isEmpty) {
-      return IntNil
+      return FPNil
     }
     FPList(seq.head, fromSeq(seq.tail))
   }
 
-  def sum(intList: IntList): Int = {
-    if (intList.equals(IntNil)) throw new UnsupportedOperationException("idk why")
-    foldLeft((a, b) => a + b, 0, intList)
-  }
+  def sum[A](list: List[A]): A = ???
+//  def sum(list: List[A]): A = {
+//    if (intList.equals(FPNil)) throw new UnsupportedOperationException("idk why")
+//    foldLeft((a, b) => a + b, 0, intList)
+//  }
 
-  def size(intList: IntList): Int = foldLeft((a, _) => a + 1, 0, intList)
+  def size[A](list: List[A]): Int = foldLeft[A, Int]((a, _) => a + 1, 0, list)
 
   @tailrec
-  def foldLeft(f: (Int, Int) => Int, start: Int, intList: IntList): Int = {
-    if (intList.equals(IntNil)) return start
-    foldLeft(f, f(start, intList.head), intList.tail)
+  def foldLeft[A, B](f: (B, A) => B, start: B, list: List[A]): B = {
+    if (list.equals(FPNil)) return start
+    foldLeft(f, f(start, list.head), list.tail)
   }
 }
